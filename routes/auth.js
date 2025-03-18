@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const authMiddleware = require('../middlewares/authMiddleware');
 const router = express.Router();
 
 // Ruta de registro
@@ -61,5 +62,27 @@ router.get('/users', async (req, res) => {
     res.status(500).json({ message: 'Error al obtener los usuarios' });
   }
 });
+
+// Ruta para obtener los datos del usuario autenticado
+router.get('/me', authMiddleware, async (req, res) => {
+  try {
+    // Se asume que authMiddleware asigna req.user correctamente
+    const userId = req.user.user.id; // Dependiendo de cómo esté estructurado el payload
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+    return res.json({
+      id: user.id,
+      username: user.username, // o nombre, según tu modelo
+      email: user.email,
+    });
+  } catch (error) {
+    console.error('Error al obtener datos del usuario:', error);
+    return res.status(500).json({ error: 'Error al obtener datos del usuario' });
+  }
+});
+
+
 
 module.exports = router;
