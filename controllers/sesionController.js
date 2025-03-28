@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const User = require("../models/User"); // Suponiendo que tienes un modelo User
-const Sesion = require("../models/Sesion"); // Suponiendo que usas un modelo de Sesión
+const Sesion = require('../models/Sesion'); // Suponiendo que usas un modelo de Sesión
 
 // Función de inicio de sesión
 const login = async (req, res) => {

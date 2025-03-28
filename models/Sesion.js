@@ -7,3 +7,4 @@ const SesionSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model("Sesion", SesionSchema);
+

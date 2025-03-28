@@ -14,6 +14,9 @@ app.use("/api/auth", user);
 const sesionRoutes = require("./routes/sesion");
 app.use("/api/sesion", sesionRoutes);
 
+// const sesionTestRoutes = require("./routes/sesionRoutes");
+// app.use("/api/sesion", sesionTestRoutes);
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en el puerto ${PORT}`);

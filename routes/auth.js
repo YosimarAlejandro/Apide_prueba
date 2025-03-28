@@ -2,9 +2,10 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Sesion = require('../models/Sesion');
 const authMiddleware = require('../middlewares/authMiddleware');
 const router = express.Router();
-
+//POR SI NO TE UBICAS ESTE LA RURA DE USER 👍
 // Ruta de registro
 router.post('/register', async (req, res) => {
   const { username, email, password } = req.body;
@@ -42,8 +43,30 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ msg: "Credenciales inválidas" });
     }
 
+    // Crear un payload para el token JWT
     const payload = { user: { id: user.id } };
-    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+    // Generar el token con una expiración de 1 hora
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1d' });
+
+    // Verificar si ya existe una sesión activa para este usuario
+    const existingSession = await Sesion.findOne({ userId: user._id });
+
+    if (existingSession) {
+      // Si existe, actualizar la sesión
+      existingSession.token = token;
+      existingSession.createdAt = new Date();
+      await existingSession.save();
+    } else {
+      // Si no existe una sesión, crear una nueva
+      const nuevaSesion = new Sesion({
+        userId: user._id,
+        token: token,
+        createdAt: new Date(),
+      });
+
+      await nuevaSesion.save();
+    }
 
     res.json({ token });
   } catch (error) {
@@ -51,6 +74,8 @@ router.post('/login', async (req, res) => {
     res.status(500).send('Error en el servidor');
   }
 });
+
+
 
 // Ruta para obtener todos los usuarios
 router.get('/users', async (req, res) => {
