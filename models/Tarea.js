@@ -1,30 +1,38 @@
-const mongoose = require("mongoose");;//esta cosa sirve para definir que se trata de un esquema tipo mongo
+const mongoose = require("mongoose");
 
-// Modelo de Tarea
 const TareaSchema = new mongoose.Schema({
-    
-    tarea: {
+    pregunta: {
         type: String,
-        required: true
+        required: true,
+        trim: true
     },
-    imagen: {
+    opciones: {
+        type: [String], // Un array de strings para las opciones
+        required: true,
+        validate: {
+            validator: function (arr) {
+                return arr.length >= 2; // Asegura que haya al menos 2 opciones
+            },
+            message: "Debe haber al menos dos opciones."
+        }
+    },
+    respuestaCorrecta: {
         type: String,
-        required: false
+        required: true,
+        validate: {
+            validator: function (respuesta) {
+                return this.opciones.includes(respuesta);
+            },
+            message: "La respuesta correcta debe estar en las opciones."
+        }
     },
-    fecha_tarea: {
-        type: Date,
-        required: true
-    },
-    id_logro: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Logro",
-        required: false
-    },
-    id_progreso: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Progreso",
-        required: true
+    puntaje: {
+        type: Number,
+        required: true,
+        min: 1 // Asegura que el puntaje sea positivo
     }
-});
+}, { timestamps: true });
 
 const Tarea = mongoose.model("Tarea", TareaSchema);
+
+module.exports = Tarea;

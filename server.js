@@ -11,8 +11,14 @@ app.use(express.json());
 const user = require("./routes/auth");
 app.use("/api/auth", user);
 
+const tarea = require("./routes/tarea");
+app.use("/api/tarea", tarea);
+
 const sesionRoutes = require("./routes/sesion");
 app.use("/api/sesion", sesionRoutes);
+
+const tareaRoutes = require('./routes/progreso');  // Asegúrate de que la ruta a tarea.js sea correcta
+app.use('/api/progreso', tareaRoutes); 
 
 // const sesionTestRoutes = require("./routes/sesionRoutes");
 // app.use("/api/sesion", sesionTestRoutes);
