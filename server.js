@@ -20,6 +20,10 @@ app.use("/api/sesion", sesionRoutes);
 const tareaRoutes = require('./routes/progreso');  // Asegúrate de que la ruta a tarea.js sea correcta
 app.use('/api/progreso', tareaRoutes); 
 
+const logroRoutes = require('./routes/logro');  // Asegúrate de que la ruta a tarea.js sea correcta
+app.use('/api/logro', logroRoutes); 
+
+
 // const sesionTestRoutes = require("./routes/sesionRoutes");
 // app.use("/api/sesion", sesionTestRoutes);
 
