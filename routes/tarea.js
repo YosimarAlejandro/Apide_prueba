@@ -92,4 +92,21 @@ router.post("/:id/responder", authMiddleware, async (req, res) => {
 });
 
 
+// Obtener tareas por bloque
+router.get("/tareas/bloque/:bloque", async (req, res) => {
+  const bloque = parseInt(req.params.bloque);
+
+  if (isNaN(bloque)) {
+    return res.status(400).json({ error: "Bloque inválido. Debe ser un número." });
+  }
+
+  try {
+    const tareasPorBloque = await Tarea.find({ bloque });
+    res.json(tareasPorBloque);
+  } catch (error) {
+    res.status(500).json({ error: "Error al obtener las tareas por bloque." });
+  }
+});
+
+
 module.exports = router;
