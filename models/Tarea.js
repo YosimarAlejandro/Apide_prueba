@@ -35,6 +35,16 @@ const TareaSchema = new mongoose.Schema({
         type: Number,
         required: true,
         enum: [1, 2, 3, 4, 5], // opcional: restringe a los 5 bloques
+    },
+    dificultad: {
+        type: String,
+        enum: ["fácil", "media", "difícil"],
+        default: "fácil"
+    },
+    logro: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Logro",
+        required: false
     }
 }, { timestamps: true });
 

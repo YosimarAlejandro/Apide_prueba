@@ -4,6 +4,9 @@ const router = express.Router();
 const Tarea = require('../models/Tarea');  // Modelo de Tarea
 const Progreso = require('../models/Progreso');  // Modelo de Progreso
 const authMiddleware = require('../middlewares/authMiddleware');
+// Importa el modelo
+const LogroUnlocked = require('../models/Logro_unlocked');
+
 
 
 // Obtener todas las tareas
@@ -42,15 +45,13 @@ router.delete("/:id", async (req, res) => {
 
 // Responder a una tarea y guardar el progreso
 // Responder a una tarea y guardar el progreso
+
 router.post("/:id/responder", authMiddleware, async (req, res) => {
   try {
-    const { respuesta, id_sesion } = req.body; // ya no necesitas id_usuario en el body
-    const { id } = req.params; // Este 'id' es el ID de la Tarea
-
-    // Obtenemos el id del usuario desde el token
+    const { respuesta, id_sesion } = req.body;
+    const { id } = req.params;
     const id_usuario = req.user.user.id;
 
-    // Verificamos si el ID de la tarea es válido
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ error: "ID de tarea no válido" });
     }
@@ -60,33 +61,50 @@ router.post("/:id/responder", authMiddleware, async (req, res) => {
       return res.status(404).json({ error: "Tarea no encontrada" });
     }
 
-    // Validar si la respuesta es correcta
     const esCorrecta = tarea.respuestaCorrecta === respuesta;
-
-    // Si es correcta, asignamos el puntaje de la tarea
     const puntajeAsignado = esCorrecta ? tarea.puntaje : 0;
 
-    // Creamos un nuevo registro en la colección de Progreso
     const nuevoProgreso = new Progreso({
-      id_usuario,   // El usuario autenticado que respondió
-      id_tarea: id, // Referencia a la tarea
-      id_sesion,    // Referencia a la sesión, si se envía (opcional)
+      id_usuario,
+      id_tarea: id,
+      id_sesion,
       puntaje: puntajeAsignado,
       correcto: esCorrecta,
       fecha_progreso: new Date()
     });
 
-    // Guardamos el progreso en la base de datos
     await nuevoProgreso.save();
 
-    // Respondemos con el resultado
+    let logroDesbloqueado = null;
+
+    if (esCorrecta && tarea.logro) {
+      const yaTieneLogro = await LogroUnlocked.findOne({
+        id_usuario,
+        id_logro: tarea.logro
+      });
+
+      if (!yaTieneLogro) {
+        const nuevoLogro = new LogroUnlocked({
+          id_usuario,
+          id_logro: tarea.logro,
+          fuente: "tarea"
+        });
+
+        await nuevoLogro.save();
+        // opcional: .populate("id_logro") si querés detalle del logro
+        logroDesbloqueado = await nuevoLogro.populate("id_logro");
+      }
+    }
+
     res.json({
       mensaje: esCorrecta ? "Respuesta correcta" : "Respuesta incorrecta",
       puntaje: puntajeAsignado,
-      progreso: nuevoProgreso
+      progreso: nuevoProgreso,
+      logroDesbloqueado
     });
+
   } catch (error) {
-    console.error(error);
+    console.error("Error al responder tarea:", error);
     res.status(500).json({ error: error.message });
   }
 });

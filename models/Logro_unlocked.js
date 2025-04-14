@@ -18,3 +18,5 @@ const LogroUnlockedSchema = new mongoose.Schema({
     }
 });
 const LogroUnlocked = mongoose.model("LogroUnlocked", LogroUnlockedSchema);
+
+module.exports = LogroUnlocked;

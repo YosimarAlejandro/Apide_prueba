@@ -25,6 +25,10 @@ app.use('/api/progreso', tareaRoutes);
 const logroRoutes = require('./routes/logro');
 app.use('/api/logro', logroRoutes);
 
+const logrosUnlockedRoutes = require("./routes/logro_unlocked");
+app.use("/logros-unlocked", logrosUnlockedRoutes);
+
+
 // Nueva ruta para enviar notificaciones usando FastAPI
 app.post("/send-notification", async (req, res) => {
   const { input_data } = req.body; // Recibimos los datos de la solicitud
