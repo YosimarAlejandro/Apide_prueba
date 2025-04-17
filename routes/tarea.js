@@ -6,6 +6,7 @@ const Progreso = require('../models/Progreso');  // Modelo de Progreso
 const authMiddleware = require('../middlewares/authMiddleware');
 // Importa el modelo
 const LogroUnlocked = require('../models/Logro_unlocked');
+const axios = require("axios");
 
 
 
@@ -43,7 +44,7 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
-// Responder a una tarea y guardar el progreso
+
 // Responder a una tarea y guardar el progreso
 
 router.post("/:id/responder", authMiddleware, async (req, res) => {
@@ -91,16 +92,52 @@ router.post("/:id/responder", authMiddleware, async (req, res) => {
         });
 
         await nuevoLogro.save();
-        // opcional: .populate("id_logro") si querés detalle del logro
         logroDesbloqueado = await nuevoLogro.populate("id_logro");
       }
+    }
+
+    console.log("📦 Enviando a IA:", {
+      puntaje: puntajeAsignado,
+      correcto: esCorrecta,
+      dificultad_actual: tarea.dificultad
+    });
+
+    let dificultadSugerida = null;
+    let siguienteTarea = null;
+
+    try {
+      const iaResponse = await axios.post("http://localhost:3000/predecir", {
+        puntaje: puntajeAsignado,
+        correcto: esCorrecta,
+        dificultad_actual: tarea.dificultad
+      }, {
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
+
+      dificultadSugerida = iaResponse.data.dificultad_sugerida;
+
+      // 🎯 Buscar siguiente tarea en el mismo bloque y con dificultad sugerida
+      const tareasRespondidas = await Progreso.find({ id_usuario }).distinct("id_tarea");
+
+      siguienteTarea = await Tarea.findOne({
+        _id: { $nin: tareasRespondidas },
+        dificultad: dificultadSugerida,
+        bloque: tarea.bloque
+      });
+
+    } catch (iaError) {
+      console.error("Error al llamar a la IA o al buscar siguiente tarea:", iaError.message);
     }
 
     res.json({
       mensaje: esCorrecta ? "Respuesta correcta" : "Respuesta incorrecta",
       puntaje: puntajeAsignado,
       progreso: nuevoProgreso,
-      logroDesbloqueado
+      logroDesbloqueado,
+      siguiente_dificultad: dificultadSugerida,
+      siguiente_tarea: siguienteTarea // 👈 Aquí va la siguiente tarea recomendada
     });
 
   } catch (error) {
