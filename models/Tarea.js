@@ -1,6 +1,11 @@
 const mongoose = require("mongoose");
 
 const TareaSchema = new mongoose.Schema({
+    imagen: {
+        type: String,
+        required: false,
+        match: [/^https?:\/\//, 'Debe ser una URL válida']
+    },
     pregunta: {
         type: String,
         required: true,
@@ -34,7 +39,7 @@ const TareaSchema = new mongoose.Schema({
     bloque: {
         type: Number,
         required: true,
-        enum: [1, 2, 3, 4, 5], // opcional: restringe a los 5 bloques
+        enum: [1, 2, 3, 4, 5, 6], // opcional: restringe a los 6 bloques
     },
     dificultad: {
         type: String,
